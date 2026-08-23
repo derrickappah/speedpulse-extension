@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpeedPulse - Speed Test</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">
+          <img src="icons/speedometer.svg" alt="SpeedPulse Logo">
+        </div>
+        <div class="brand-text">
+          <h1>SpeedPulse</h1>
+        </div>
+      </div>
+
+      <!-- Navigation & Actions -->
+      <div class="header-actions">
+        <nav class="nav-tabs">
+          <button class="tab-btn active" data-tab="test-tab" title="Speed Test">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </button>
+          <button class="tab-btn" data-tab="history-tab" title="History">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </button>
+          <button class="tab-btn" data-tab="settings-tab" title="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </nav>
+
+        <button id="btn-theme-toggle" class="theme-toggle-btn" title="Toggle dark/light theme" aria-label="Toggle theme">
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Tab 1: Speed Test View -->
+    <main id="test-tab" class="tab-content active">
+      <!-- Sub-panel A: Active / Idle Testing Screen -->
+      <div id="test-live-view" class="test-subpanel active">
+        <!-- Status Badge -->
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span id="phase-status">Ready</span>
+        </div>
+
+        <!-- Gauge Container -->
+        <div class="gauge-wrapper">
+          <canvas id="gaugeCanvas" width="280" height="210"></canvas>
+          <div class="gauge-center-content">
+            <div class="speed-readout" id="live-speed-val">0.0</div>
+            <div class="speed-unit" id="display-unit-label">Mbps</div>
+            <div class="phase-tag" id="current-phase-label">IDLE</div>
+          </div>
+        </div>
+
+        <!-- Live Waveform Canvas -->
+        <div class="waveform-box">
+          <canvas id="waveformCanvas" width="280" height="40"></canvas>
+        </div>
+
+        <!-- Key Metrics Row -->
+        <div class="metrics-grid">
+          <div class="metric-card" id="card-ping">
+            <div class="metric-header">
+              <span class="metric-dot ping-dot"></span>
+              <span class="metric-title">PING</span>
+            </div>
+            <div class="metric-value"><span id="metric-ping">--</span> <small>ms</small></div>
+          </div>
+
+          <div class="metric-card" id="card-jitter">
+            <div class="metric-header">
+              <span class="metric-dot jitter-dot"></span>
+              <span class="metric-title">JITTER</span>
+            </div>
+            <div class="metric-value"><span id="metric-jitter">--</span> <small>ms</small></div>
+          </div>
+
+          <div class="metric-card" id="card-download">
+            <div class="metric-header">
+              <span class="metric-dot download-dot"></span>
+              <span class="metric-title">DOWNLOAD</span>
+            </div>
+            <div class="metric-value"><span id="metric-download">--</span> <small id="metric-download-unit">Mbps</small></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-download"></div></div>
+          </div>
+
+          <div class="metric-card" id="card-upload">
+            <div class="metric-header">
+              <span class="metric-dot upload-dot"></span>
+              <span class="metric-title">UPLOAD</span>
+            </div>
+            <div class="metric-value"><span id="metric-upload">--</span> <small id="metric-upload-unit">Mbps</small></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-upload"></div></div>
+          </div>
+        </div>
+
+        <!-- Network Details Box -->
+        <div class="network-bar">
+          <div class="network-item" id="network-isp-box" title="Internet Service Provider">
+            <svg class="net-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            <span class="net-label" id="net-isp">Detecting network...</span>
+          </div>
+          <div class="network-item" id="network-loc-box" title="Client IP & Location">
+            <svg class="net-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            <span class="net-label" id="net-location">--</span>
+          </div>
+        </div>
+
+        <!-- Primary Action Button -->
+        <div class="action-footer">
+          <button id="btn-start" class="primary-btn">
+            <span class="btn-text">Start Test</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sub-panel B: Dedicated Finish / Results Screen -->
+      <div id="test-finish-view" class="test-subpanel">
+        <!-- Result Summary Header -->
+        <div class="finish-header">
+          <div class="finish-badge-row">
+            <span class="finish-grade-badge" id="finish-grade-badge">Fast Connection</span>
+            <span class="finish-timestamp" id="finish-timestamp">Just now</span>
+          </div>
+          <p class="finish-summary-desc" id="finish-summary-desc">Your network is fast and optimal for high-bandwidth tasks.</p>
+        </div>
+
+        <!-- Hero Speed Cards -->
+        <div class="finish-hero-grid">
+          <div class="finish-hero-card download-card">
+            <div class="finish-hero-label">
+              <span class="metric-dot download-dot"></span>
+              <span>DOWNLOAD</span>
+            </div>
+            <div class="finish-hero-num">
+              <span id="finish-val-download">0.0</span>
+              <span class="finish-hero-unit" id="finish-unit-download">Mbps</span>
+            </div>
+          </div>
+
+          <div class="finish-hero-card upload-card">
+            <div class="finish-hero-label">
+              <span class="metric-dot upload-dot"></span>
+              <span>UPLOAD</span>
+            </div>
+            <div class="finish-hero-num">
+              <span id="finish-val-upload">0.0</span>
+              <span class="finish-hero-unit" id="finish-unit-upload">Mbps</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latency & Stability Sub-row -->
+        <div class="finish-latency-row">
+          <div class="finish-latency-item">
+            <span class="latency-label">PING</span>
+            <span class="latency-val" id="finish-val-ping">0 <small>ms</small></span>
+          </div>
+          <div class="finish-latency-item">
+            <span class="latency-label">JITTER</span>
+            <span class="latency-val" id="finish-val-jitter">0 <small>ms</small></span>
+          </div>
+          <div class="finish-latency-item">
+            <span class="latency-label">STABILITY</span>
+            <span class="latency-val" id="finish-val-stability">Stable</span>
+          </div>
+        </div>
+
+        <!-- Real-World Performance Breakdown -->
+        <div class="finish-breakdown-box">
+          <div class="breakdown-title">Performance Breakdown</div>
+          <div class="breakdown-list">
+            <div class="breakdown-item">
+              <div class="breakdown-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+              <div class="breakdown-info">
+                <span class="breakdown-label">Video Streaming</span>
+                <span class="breakdown-text" id="breakdown-stream">4K UHD Smooth Playback</span>
+              </div>
+            </div>
+
+            <div class="breakdown-item">
+              <div class="breakdown-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4m7-2h.01m3 0h.01"/></svg>
+              </div>
+              <div class="breakdown-info">
+                <span class="breakdown-label">Gaming & Calls</span>
+                <span class="breakdown-text" id="breakdown-gaming">Low latency, zero lag</span>
+              </div>
+            </div>
+
+            <div class="breakdown-item">
+              <div class="breakdown-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              </div>
+              <div class="breakdown-info">
+                <span class="breakdown-label">1 GB File Transfer</span>
+                <span class="breakdown-text" id="breakdown-file">Approx ~25 seconds</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Finish Network Info -->
+        <div class="finish-net-meta">
+          <span id="finish-net-isp">Broadband Provider</span> &bull; <span id="finish-net-ip">0.0.0.0</span>
+        </div>
+
+        <!-- Finish Actions -->
+        <div class="finish-actions-row">
+          <button id="btn-test-again" class="primary-btn finish-btn-main">
+            <span>Test Again</span>
+          </button>
+          <button id="btn-copy-results" class="action-btn finish-btn-copy" title="Copy Results to Clipboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span id="copy-text-label">Copy</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Tab 2: History View -->
+    <section id="history-tab" class="tab-content">
+      <div class="tab-header-row">
+        <h2>History</h2>
+        <div class="history-actions">
+          <button id="btn-export-csv" class="action-btn" title="Export as CSV">CSV</button>
+          <button id="btn-export-json" class="action-btn" title="Export as JSON">JSON</button>
+          <button id="btn-clear-history" class="action-btn danger" title="Clear History">Clear</button>
+        </div>
+      </div>
+
+      <!-- History Summary Stats -->
+      <div class="history-stats-banner">
+        <div class="stat-pill">
+          <span class="pill-label">Tests</span>
+          <span class="pill-val" id="hist-stat-count">0</span>
+        </div>
+        <div class="stat-pill">
+          <span class="pill-label">Avg Down</span>
+          <span class="pill-val" id="hist-stat-avg">0 <small>Mbps</small></span>
+        </div>
+        <div class="stat-pill">
+          <span class="pill-label">Top Down</span>
+          <span class="pill-val" id="hist-stat-top">0 <small>Mbps</small></span>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <div class="history-list-wrapper" id="history-list">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>
+          <p>No tests recorded yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Settings View -->
+    <section id="settings-tab" class="tab-content">
+      <div class="tab-header-row">
+        <h2>Settings</h2>
+      </div>
+
+      <div class="settings-group">
+        <label class="setting-item">
+          <div class="setting-info">
+            <span class="setting-title">Theme</span>
+            <span class="setting-desc">Interface appearance</span>
+          </div>
+          <select id="setting-theme" class="custom-select">
+            <option value="dark" selected>Dark</option>
+            <option value="light">Light</option>
+            <option value="system">System</option>
+          </select>
+        </label>
+
+        <label class="setting-item">
+          <div class="setting-info">
+            <span class="setting-title">Speed Unit</span>
+            <span class="setting-desc">Display units for bandwidth</span>
+          </div>
+          <select id="setting-unit" class="custom-select">
+            <option value="Mbps">Mbps (Megabits/s)</option>
+            <option value="MB/s">MB/s (Megabytes/s)</option>
+            <option value="Kbps">Kbps (Kilobits/s)</option>
+          </select>
+        </label>
+
+        <label class="setting-item">
+          <div class="setting-info">
+            <span class="setting-title">Test Duration</span>
+            <span class="setting-desc">Duration of test cycle</span>
+          </div>
+          <select id="setting-duration" class="custom-select">
+            <option value="quick">Quick (5s)</option>
+            <option value="standard" selected>Standard (9s)</option>
+            <option value="thorough">Thorough (15s)</option>
+          </select>
+        </label>
+
+        <label class="setting-item">
+          <div class="setting-info">
+            <span class="setting-title">Streams</span>
+            <span class="setting-desc">Concurrent test connections</span>
+          </div>
+          <select id="setting-streams" class="custom-select">
+            <option value="2">2 Streams</option>
+            <option value="4" selected>4 Streams</option>
+            <option value="6">6 Streams</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="about-card">
+        <div class="about-title">SpeedPulse</div>
+        <p>Direct edge-to-client bandwidth and latency testing via Anycast edge endpoints.</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/speedtest.js"></script>
+  <script src="js/gauge.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
